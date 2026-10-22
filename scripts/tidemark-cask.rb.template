@@ -1,0 +1,31 @@
+# Homebrew cask template. Replace @VERSION@ and @SHA256@ (from Tidemark-<version>.zip.sha256).
+cask "tidemark" do
+  version "@VERSION@"
+  sha256 "@SHA256@"
+
+  url "https://github.com/wbuf81/tidemark/releases/download/v#{version}/Tidemark-#{version}.zip"
+  name "Tidemark"
+  desc "Claude Code usage widget and week calendar"
+  homepage "https://github.com/wbuf81/tidemark"
+
+  depends_on macos: ">= :sonoma"
+
+  app "Tidemark.app"
+
+  uninstall quit: "io.github.wbuf81.tidemark"
+
+  zap trash: [
+    "~/Library/Application Support/Tidemark",
+    "~/Library/Preferences/io.github.wbuf81.tidemark.plist",
+    "~/Library/WebKit/io.github.wbuf81.tidemark",
+    "~/Library/HTTPStorages/io.github.wbuf81.tidemark",
+    "~/Library/HTTPStorages/io.github.wbuf81.tidemark.binarycookies",
+    "~/Library/Caches/io.github.wbuf81.tidemark",
+    "~/Library/Saved Application State/io.github.wbuf81.tidemark.savedState",
+  ]
+
+  caveats <<~EOS
+    Before you uninstall, open Tidemark's Settings → Advanced → Uninstall… so it can take its
+    hooks out of Claude Code's settings. Homebrew can't do that part for you.
+  EOS
+end

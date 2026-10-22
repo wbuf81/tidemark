@@ -1,0 +1,6 @@
+{"type":"ai-title","aiTitle":"Early title"}
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:00:00.000Z","origin":{"kind":"human"},"message":{"role":"user","content":"fix the tide table"}}
+{"type":"custom-title","customTitle":"Chart export work"}
+{"type":"assistant","timestamp":"2026-10-12T13:05:00Z","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"ai-title","aiTitle":"Later AI title"}
+{"type":"custom-title","customTitle":""}

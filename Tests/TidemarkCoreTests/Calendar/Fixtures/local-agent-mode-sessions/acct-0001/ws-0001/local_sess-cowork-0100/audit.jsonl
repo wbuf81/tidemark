@@ -1,0 +1,4 @@
+{"type":"user","timestamp":"2026-10-12T16:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"Draft the harbor report"}}
+{"type":"assistant","_audit_timestamp":"2026-10-12T16:05:00Z","message":{"role":"assistant","content":"On it."}}
+{"type":"assistant","timestamp":"2026-10-12T16:07:00Z","parent_tool_use_id":"tool-1","message":{"role":"assistant","content":"sub step"}}
+{"type":"result","_audit_timestamp":"2026-10-12T17:30:00Z","modelUsage":{}}

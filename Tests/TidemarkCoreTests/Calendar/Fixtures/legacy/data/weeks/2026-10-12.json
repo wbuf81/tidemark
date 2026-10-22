@@ -1,0 +1,109 @@
+{
+ "start": "2026-10-12",
+ "partial": false,
+ "week": {
+  "days": [
+   "2026-10-12T00:00:00-04:00",
+   "2026-10-13T00:00:00-04:00",
+   "2026-10-14T00:00:00-04:00",
+   "2026-10-15T00:00:00-04:00",
+   "2026-10-16T00:00:00-04:00",
+   "2026-10-17T00:00:00-04:00",
+   "2026-10-18T00:00:00-04:00",
+   "2026-10-19T00:00:00-04:00"
+  ],
+  "now": "2026-10-21T11:32:00-04:00"
+ },
+ "projects": [
+  {
+   "root": "/Users/you/code/tide-tables",
+   "name": "tide-tables",
+   "seconds": 14400.0,
+   "git": true
+  }
+ ],
+ "sessions": [
+  {
+   "id": "sess-tide-0003",
+   "source": "Claude Code",
+   "folders": [],
+   "root": "/Users/you/code/tide-tables",
+   "origin": "/Users/you/code/tide-tables",
+   "project": "tide-tables",
+   "title": "Night build",
+   "type": null,
+   "first": "Speed up the nightly build",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": true,
+   "running": false,
+   "nocommit": false,
+   "commits": 0,
+   "scheduled": false,
+   "partial": false,
+   "logged": false,
+   "tokens": {}
+  },
+  {
+   "id": "sess-tide-0004",
+   "source": "Claude Code",
+   "folders": [],
+   "root": "/Users/you/code/tide-tables",
+   "origin": "/Users/you/code/tide-tables",
+   "project": "tide-tables",
+   "title": "Legend colours",
+   "type": null,
+   "first": "Fix the legend colours",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": true,
+   "running": false,
+   "nocommit": false,
+   "commits": 2,
+   "scheduled": false,
+   "partial": false,
+   "logged": false,
+   "tokens": {}
+  }
+ ],
+ "blocks": [
+  {
+   "s": 0,
+   "start": "2026-10-12T00:00:00-04:00",
+   "end": "2026-10-12T01:00:00-04:00",
+   "commits": []
+  },
+  {
+   "s": 1,
+   "start": "2026-10-14T09:00:00-04:00",
+   "end": "2026-10-14T12:00:00-04:00",
+   "commits": [
+    {
+     "h": "abcdef0",
+     "subject": "Fix legend colours",
+     "files": [
+      "Sources/Legend.swift"
+     ]
+    },
+    {
+     "h": "1234abc",
+     "subject": "Add legend test",
+     "files": []
+    }
+   ]
+  }
+ ],
+ "total": 14400.0,
+ "session_time": 14400.0,
+ "per_day": [
+  3600.0,
+  0.0,
+  10800.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0
+ ]
+}

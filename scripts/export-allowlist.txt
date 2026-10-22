@@ -1,0 +1,27 @@
+# What the public repository contains. One glob per line; ** matches any depth.
+# export-public.sh deletes everything in the exported commit that no line here matches.
+Sources/**
+Tests/**
+Resources/**
+scripts/**
+docs/contracts.md
+docs/manual-checks.md
+docs/images/*-light.png
+docs/images/*-dark.png
+docs/images/README-pictures.txt
+docs/images/widget-status.gif
+.github/**
+.githooks/**
+Package.swift
+build.sh
+release.sh
+test.sh
+VERSION
+LICENSE
+README.md
+PRIVACY.md
+SECURITY.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+.gitignore

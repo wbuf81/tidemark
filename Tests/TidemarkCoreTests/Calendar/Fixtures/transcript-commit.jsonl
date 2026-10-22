@@ -1,0 +1,4 @@
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"commit it"}}
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:10:00Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t2","content":"[main 9eba146] Add chart export\n 2 files changed, 10 insertions(+)"}]}}
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:11:00Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t3","content":[{"type":"text","text":"On branch main\n[feature/tides abcdef0123] Fix the legend\n"}]}]}}
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:12:00Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t4","content":"not a commit [main 1234567] mid-line"}]}}

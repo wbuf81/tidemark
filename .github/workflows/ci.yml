@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: macOS ${{ matrix.macos }}
+    runs-on: macos-${{ matrix.macos }}
+    strategy:
+      fail-fast: false
+      matrix:
+        macos: ["14", "15"]
+    env:
+      # Every picture the render draws today.
+      MIN_PNGS: 478
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16 (macOS 14 runner)
+        if: matrix.macos == '14'
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: ./test.sh
+
+      - name: Render the pictures
+        run: |
+          swift run Tidemark --render "$RUNNER_TEMP/r"
+          count=$(find "$RUNNER_TEMP/r" -name '*.png' | wc -l | tr -d ' ')
+          echo "rendered $count PNGs (at least $MIN_PNGS expected)"
+          if [ "$count" -lt "$MIN_PNGS" ]; then
+            echo "::error::only $count PNGs rendered, expected at least $MIN_PNGS"
+            exit 1
+          fi
+
+      - name: Scan for anything private
+        # Generic patterns only; the owner's private words are checked locally.
+        # Pictures can't be scanned here and are reviewed by hand before release.
+        run: TIDEMARK_ALLOW_MEDIA=1 .githooks/scan-sensitive.sh --all
+
+  gate:
+    name: Export gate
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test the export gate
+        run: scripts/test-gate.sh
+      - name: Test the build scripts
+        run: scripts/test-build-scripts.sh

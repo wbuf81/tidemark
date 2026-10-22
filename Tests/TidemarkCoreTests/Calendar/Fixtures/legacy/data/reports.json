@@ -1,0 +1,12 @@
+{
+ "2026-10-05": {
+  "week": "Shipped the chart export.",
+  "done": "Fixed the sign-in loop in lighthouse-api.",
+  "most_time": "Most time went on tide-tables.",
+  "next": "",
+  "days": {
+   "2026-10-05": "Chart export.",
+   "2026-10-06": "Sign-in loop."
+  }
+ }
+}

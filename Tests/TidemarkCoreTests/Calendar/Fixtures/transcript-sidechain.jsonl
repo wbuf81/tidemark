@@ -1,0 +1,4 @@
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"start"}}
+{"type":"assistant","isSidechain":true,"cwd":"/Users/you/elsewhere","timestamp":"2026-10-12T18:00:00Z","message":{"role":"assistant","content":"side work"}}
+{"type":"assistant","timestamp":"2026-10-12T13:10:00Z","message":{"role":"assistant","content":"main work"}}
+{"type":"system","timestamp":"2026-10-12T20:00:00Z"}

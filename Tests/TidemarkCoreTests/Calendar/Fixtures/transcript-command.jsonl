@@ -1,0 +1,2 @@
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"<command-name>/review</command-name><command-args>pr 12</command-args>"}}
+{"type":"assistant","timestamp":"2026-10-12T13:01:00Z","message":{"role":"assistant","content":"reviewing"}}

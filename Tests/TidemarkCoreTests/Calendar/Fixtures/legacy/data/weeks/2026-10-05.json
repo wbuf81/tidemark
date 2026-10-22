@@ -1,0 +1,176 @@
+{
+ "start": "2026-10-05",
+ "partial": false,
+ "week": {
+  "days": [
+   "2026-10-05T00:00:00-04:00",
+   "2026-10-06T00:00:00-04:00",
+   "2026-10-07T00:00:00-04:00",
+   "2026-10-08T00:00:00-04:00",
+   "2026-10-09T00:00:00-04:00",
+   "2026-10-10T00:00:00-04:00",
+   "2026-10-11T00:00:00-04:00",
+   "2026-10-12T00:00:00-04:00"
+  ],
+  "now": "2026-10-21T11:32:00-04:00"
+ },
+ "projects": [
+  {
+   "root": "/Users/you/code/tide-tables",
+   "name": "tide-tables",
+   "seconds": 16800.0,
+   "git": true
+  }
+ ],
+ "sessions": [
+  {
+   "id": "sess-tide-0001",
+   "source": "Claude Code",
+   "folders": [],
+   "root": "/Users/you/code/tide-tables",
+   "origin": "/Users/you/code/tide-tables",
+   "project": "tide-tables",
+   "title": "Chart export",
+   "type": null,
+   "first": "Add the chart export",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": true,
+   "running": false,
+   "nocommit": false,
+   "commits": 1,
+   "scheduled": false,
+   "partial": false,
+   "logged": false,
+   "tokens": {
+    "claude-test-1": [
+     10,
+     20,
+     30,
+     40
+    ]
+   }
+  },
+  {
+   "id": "sess-tide-0002",
+   "source": "Claude Code",
+   "folders": [],
+   "root": "/Users/you/code/lighthouse-api",
+   "origin": "/Users/you/code/lighthouse-api",
+   "project": "lighthouse-api",
+   "title": null,
+   "type": null,
+   "first": "Fix the sign-in loop",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": true,
+   "running": false,
+   "nocommit": false,
+   "commits": 0,
+   "scheduled": false,
+   "partial": false,
+   "logged": false,
+   "tokens": {}
+  },
+  {
+   "id": "sess-cowork-0001",
+   "source": "Cowork",
+   "folders": [
+    "Daily briefs"
+   ],
+   "root": "Cowork",
+   "origin": "Cowork",
+   "project": "Cowork",
+   "title": "Daily email brief",
+   "type": null,
+   "first": "summarise my inbox",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": false,
+   "running": false,
+   "nocommit": false,
+   "commits": 0,
+   "scheduled": true,
+   "partial": false,
+   "logged": true,
+   "tokens": {}
+  },
+  {
+   "id": "sess-tide-0003",
+   "source": "Claude Code",
+   "folders": [],
+   "root": "/Users/you/code/tide-tables",
+   "origin": "/Users/you/code/tide-tables",
+   "project": "tide-tables",
+   "title": "Night build",
+   "type": null,
+   "first": "Speed up the nightly build",
+   "models": [
+    "claude-test-1"
+   ],
+   "git": true,
+   "running": false,
+   "nocommit": false,
+   "commits": 0,
+   "scheduled": false,
+   "partial": false,
+   "logged": false,
+   "tokens": {}
+  }
+ ],
+ "blocks": [
+  {
+   "s": 0,
+   "start": "2026-10-05T09:00:00-04:00",
+   "end": "2026-10-05T10:30:00-04:00",
+   "commits": [
+    {
+     "h": "9eba146",
+     "subject": "Add chart export",
+     "files": [
+      "Sources/Chart.swift",
+      "Tests/ChartTests.swift"
+     ]
+    }
+   ]
+  },
+  {
+   "s": 0,
+   "start": "2026-10-05T13:00:00-04:00",
+   "end": "2026-10-05T14:00:00-04:00",
+   "commits": []
+  },
+  {
+   "s": 1,
+   "start": "2026-10-06T10:00:00-04:00",
+   "end": "2026-10-06T11:00:00-04:00",
+   "commits": []
+  },
+  {
+   "s": 2,
+   "start": "2026-10-09T07:00:00-04:00",
+   "end": "2026-10-09T07:10:00-04:00",
+   "commits": []
+  },
+  {
+   "s": 3,
+   "start": "2026-10-11T23:00:00-04:00",
+   "end": "2026-10-12T00:00:00-04:00",
+   "commits": []
+  }
+ ],
+ "total": 16800.0,
+ "session_time": 16800.0,
+ "per_day": [
+  9000.0,
+  3600.0,
+  0.0,
+  0.0,
+  600.0,
+  0.0,
+  3600.0
+ ]
+}

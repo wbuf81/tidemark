@@ -1,0 +1,4 @@
+{"type":"ai-title","aiTitle":"First AI title"}
+{"type":"user","cwd":"/Users/you/code/tide-tables","timestamp":"2026-10-12T13:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"hello"}}
+{"type":"ai-title","aiTitle":"Last AI title"}
+{"type":"ai-title","aiTitle":""}
