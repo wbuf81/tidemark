@@ -125,14 +125,60 @@ enum MenuBarIcon {
         return title
     }
 
+    /// How far from the left of a battery title its battery starts: the width of the name before it.
+    static func batteryOffset(in title: NSAttributedString) -> CGFloat {
+        let at = (title.string as NSString).range(of: "\u{FFFC}").location
+        guard at != NSNotFound, at > 0 else { return 0 }
+        return title.attributedSubstring(from: NSRange(location: 0, length: at)).size().width
+    }
+
+    /// The menu bar's ink in a fixed look (what the renders use; the real bar's own text colour is the same idea).
+    static func ink(dark: Bool, inverse: Bool = false) -> NSColor {
+        let light = NSColor(srgbRed: 0.07, green: 0.07, blue: 0.07, alpha: 1), night = NSColor(srgbRed: 0.95, green: 0.95, blue: 0.97, alpha: 1)
+        return dark != inverse ? night : light
+    }
+
+    /// The menu bar's own colour, for the thin ring round the blue dot.
+    static func barColor(dark: Bool) -> NSColor {
+        dark ? NSColor(srgbRed: 0.10, green: 0.11, blue: 0.25, alpha: 1) : NSColor(srgbRed: 0.93, green: 0.94, blue: 0.97, alpha: 1)
+    }
+
     /// The same label drawn to a picture in a fixed look, for the renders (a real item draws it as a button title).
-    static func batteryTitleImage(_ item: MenuBarBatteries.Item, dark: Bool) -> NSImage {
-        let ink = dark ? NSColor(srgbRed: 0.95, green: 0.95, blue: 0.97, alpha: 1) : NSColor(srgbRed: 0.07, green: 0.07, blue: 0.07, alpha: 1)
-        let title = batteryTitle(item, ink: ink)
+    /// `effect` adds a still of what moves on the real battery: bubbles a moment into their rise, or the dot.
+    static func batteryTitleImage(_ item: MenuBarBatteries.Item, dark: Bool, effect: MenuBarBatteries.Effect? = nil) -> NSImage {
+        let title = batteryTitle(item, ink: ink(dark: dark))
         let size = title.size()
         let appearance = NSAppearance(named: dark ? .darkAqua : .aqua) ?? .currentDrawing()
-        return NSImage(size: NSSize(width: ceil(size.width), height: ceil(size.height)), flipped: false) { rect in
-            appearance.performAsCurrentDrawingAppearance { title.draw(in: rect) }
+        let pad: CGFloat = effect == nil ? 0 : 5
+        let offset = batteryOffset(in: title)
+        let font = NSFont.menuBarFont(ofSize: 0)
+        return NSImage(size: NSSize(width: ceil(size.width) + (effect == nil ? 0 : 5), height: ceil(size.height) + 2 * pad), flipped: false) { rect in
+            let text = NSRect(x: 0, y: pad, width: ceil(size.width), height: ceil(size.height))
+            appearance.performAsCurrentDrawingAppearance { title.draw(in: text) }
+            guard let effect, let context = NSGraphicsContext.current?.cgContext else { return true }
+            // The battery sits on the text's baseline, centred on its cap height.
+            let baseline = text.maxY - font.ascender
+            let box = CGRect(x: offset, y: baseline + (font.capHeight - batterySize.height) / 2, width: batterySize.width, height: batterySize.height)
+            if effect.bubbles {
+                let colour = ink(dark: dark, inverse: item.fill == .ink)
+                for bubble in BatteryEffects.Bubble.all {
+                    let p = bubble.progress(at: 0.8)
+                    let d = BatteryEffects.Bubble.size * (0.6 + 0.4 * p)
+                    let cx = box.minX + bubble.x + BatteryEffects.Bubble.size / 2 + bubble.dx * p
+                    let cy = box.minY + BatteryEffects.Bubble.bottom + BatteryEffects.Bubble.size / 2 + BatteryEffects.Bubble.rise * p
+                    context.setFillColor(colour.withAlphaComponent(BatteryEffects.Bubble.opacity(p)).cgColor)
+                    context.fillEllipse(in: CGRect(x: cx - d / 2, y: cy - d / 2, width: d, height: d))
+                }
+            }
+            if effect.dot {
+                let centre = BatteryEffects.dotCentre(batteryWidth: batterySize.width)
+                let c = CGPoint(x: box.minX + centre.x, y: box.maxY - centre.y)
+                let r = BatteryEffects.dotSize / 2
+                context.setFillColor(barColor(dark: dark).cgColor)
+                context.fillEllipse(in: CGRect(x: c.x - r - BatteryEffects.dotRing, y: c.y - r - BatteryEffects.dotRing, width: 2 * r + 2 * BatteryEffects.dotRing, height: 2 * r + 2 * BatteryEffects.dotRing))
+                context.setFillColor(BatteryEffects.dotColor.cgColor)
+                context.fillEllipse(in: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r))
+            }
             return true
         }
     }

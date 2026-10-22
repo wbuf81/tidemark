@@ -4,8 +4,8 @@ import Testing
 
 /// The menu bar's batteries: which plans get one, their labels, the left %, the colour state, and the migration of the old switch.
 struct MenuBarBatteriesTests {
-    private func plan(_ id: String, _ name: String, used: Double?, _ state: PlanState? = .fine, old: Bool = false) -> MenuBarBatteries.Plan {
-        MenuBarBatteries.Plan(id: id, name: name, weekUsed: used, state: state, isOld: old)
+    private func plan(_ id: String, _ name: String, used: Double?, _ state: PlanState? = .fine, old: Bool = false, mood: CodeMood? = nil) -> MenuBarBatteries.Plan {
+        MenuBarBatteries.Plan(id: id, name: name, weekUsed: used, state: state, isOld: old, codeMood: mood)
     }
 
     @Test func oneBatteryPerReadPlanWhileLimitsAreOn() {
@@ -82,5 +82,61 @@ struct MenuBarBatteriesTests {
         var t = Thresholds(); t.redWeekLeft = 20
         #expect(PlanStates.weekState(r, nil, t) == .out)
         #expect(PlanStates.weekState(r, nil) == .fine)
+    }
+
+    // MARK: What moves on a battery
+
+    @Test func onlyThePlanClaudeCodeIsOnShowsBubblesOrTheDot() {
+        let moods: [(CodeMood?, MenuBarBatteries.Activity)] = [
+            (.thinking, .working), (.tool, .working), (.permission, .needsYou),
+            (.idle, .none), (.done, .none), (nil, .none),
+        ]
+        for (mood, expected) in moods {
+            // The other plan carries no mood (the app passes one only for Claude Code's plan).
+            let items = MenuBarBatteries.make([plan("a", "Personal", used: 58, mood: mood), plan("b", "Harbor Labs", used: 58)], limitsOn: true, names: .names)
+            #expect(items[0].activity == expected, "\(String(describing: mood))")
+            #expect(items[1].activity == .none)
+        }
+    }
+
+    @Test func limitsOffMeansNoBatteriesAndSoNothingMoves() {
+        #expect(MenuBarBatteries.make([plan("a", "A", used: 10, mood: .tool)], limitsOn: false, names: .names).isEmpty)
+    }
+
+    @Test func voiceOverSaysWhatClaudeCodeIsDoingOnThatBattery() {
+        let items = MenuBarBatteries.make([
+            plan("a", "Personal", used: 58, mood: .thinking), plan("b", "Harbor Labs", used: 100, .out, mood: .permission),
+            plan("c", "Old", used: 58, old: true, mood: .tool), plan("d", "Quiet", used: 58, mood: .idle),
+        ], limitsOn: true, names: .names)
+        #expect(items[0].accessibility == "Personal: 42% of the week left, Claude Code is working")
+        #expect(items[1].accessibility == "Harbor Labs: out, Claude Code needs you")
+        #expect(items[2].accessibility == "Old: 42% of the week left, old reading, Claude Code is working")
+        #expect(items[3].accessibility == "Quiet: 42% of the week left")
+    }
+
+    @Test func bubblesRiseOnlyWhileWorkingAndTheGateRuns() {
+        var gate = WaveGate()
+        gate.windowVisible = true
+        #expect(MenuBarBatteries.effect(.working, gate: gate) == .init(bubbles: true, dot: false, pulse: false))
+        #expect(MenuBarBatteries.effect(.none, gate: gate) == .init(bubbles: false, dot: false, pulse: false))
+        #expect(MenuBarBatteries.effect(.needsYou, gate: gate) == .init(bubbles: false, dot: true, pulse: true))
+    }
+
+    @Test func everyReasonToStandStillTakesTheMotionAway() {
+        let reasons: [(String, (inout WaveGate) -> Void)] = [
+            ("not on screen", { $0.windowVisible = false }),
+            ("screens asleep", { $0.screensAwake = false }),
+            ("session resigned", { $0.sessionActive = false }),
+            ("Reduce Motion", { $0.reduceMotion = true }),
+            ("a picture", { $0.stillPicture = true }),
+        ]
+        for (name, stop) in reasons {
+            var gate = WaveGate()
+            gate.windowVisible = true
+            stop(&gate)
+            #expect(MenuBarBatteries.effect(.working, gate: gate) == .init(bubbles: false, dot: false, pulse: false), "\(name): no bubbles")
+            // The dot is a signal, not decoration: it stays, still.
+            #expect(MenuBarBatteries.effect(.needsYou, gate: gate) == .init(bubbles: false, dot: true, pulse: false), "\(name): still dot")
+        }
     }
 }

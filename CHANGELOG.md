@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+- The battery of the plan Claude Code is using shows bubbles rising while it works, and a blue dot when it needs you.
+- Right-click the widget: the Tide check mark follows your choice, and "Show the week" hides or shows the week at
+  the end (also in Settings → Widget).
+- The README shows everything Tidemark does, with a picture of each part.
+
 ## 1.0.1
 
 - The programs Tidemark runs (git for your commits, Claude Code for the weekly report) no longer stall

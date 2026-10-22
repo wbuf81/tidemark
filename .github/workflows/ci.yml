@@ -15,7 +15,7 @@ jobs:
         macos: ["14", "15"]
     env:
       # Every picture the render draws today.
-      MIN_PNGS: 478
+      MIN_PNGS: 512
     steps:
       - uses: actions/checkout@v4
 

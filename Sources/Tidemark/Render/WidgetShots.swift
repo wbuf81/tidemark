@@ -54,6 +54,9 @@ enum WidgetShots: ShotProvider {
                 stage.mock([.personal, .harbor], mood: .thinking, week: stage.mockWeek())
             },
             widget("two-plans-no-week", "The same without a week calendar: no week band") { stage.mock([.personal, .harbor], mood: .thinking) },
+            widget("two-plans-week-off", "Show the week turned off: no week band, the plans take its room") {
+                let m = stage.mock([.personal, .harbor], mood: .thinking, week: stage.mockWeek()); m.settings.showWeekBand = false; return m
+            },
             widget("two-plans-week-style", "Tide set to Over the week: the water traces the week to now, the paler forecast dashed ahead", width: 620) {
                 let m = stage.mock([.personal, .harbor], mood: .thinking, week: stage.mockWeek()); m.settings.tideStyle = .week; return m
             },
@@ -259,18 +262,19 @@ enum WidgetShots: ShotProvider {
             """
         // Which of the four states (signed in or not, with a week calendar or not) each item shows in.
         let states = [false, true].flatMap { signedIn in [false, true].map { (signedIn: signedIn, calendar: $0) } }
-        let all = WidgetMenu.items(signedIn: false, calendar: true, tide: .level, actions: .none)
+        let all = WidgetMenuModel.entries(signedIn: false, calendar: true, tide: .level, showWeek: true)
         for item in all {
             guard let title = item.title else { text += "| — | |\n"; continue }
-            let shown = states.filter { WidgetMenu.items(signedIn: $0.signedIn, calendar: $0.calendar, tide: .level, actions: .none).contains { $0.title == title } }
+            let shown = states.filter { WidgetMenuModel.entries(signedIn: $0.signedIn, calendar: $0.calendar, tide: .level, showWeek: true).contains { $0.title == title } }
             let when: String
             switch (shown.count, shown.allSatisfy(\.calendar), shown.allSatisfy { !$0.signedIn }) {
             case (4, _, _): when = "Always"
+            case (2, true, false) where title == "Show the week": when = "Once a week calendar is set up; checked while the week band shows (the widget only, not the notch)"
             case (2, true, false): when = "Once a week calendar is set up (Settings → Week, with Claude Code sessions on, and its week links to its pages)"
             case (2, false, true): when = "While signed out of claude.ai"
             default: when = shown.map { "\($0.signedIn ? "signed in" : "signed out")\($0.calendar ? ", with a week calendar" : "")" }.joined(separator: "; ")
             }
-            let submenu = item.children.isEmpty ? "" : " (a submenu: \(item.children.compactMap(\.title).joined(separator: ", ")); the current one is checked)"
+            let submenu = item.children.isEmpty ? "" : " (a submenu: \(item.children.compactMap(\.title).joined(separator: ", ")); the current one is checked, read each time the menu opens)"
             text += "| \(title) | \(when)\(submenu) |\n"
         }
         return text

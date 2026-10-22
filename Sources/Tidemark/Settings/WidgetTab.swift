@@ -73,6 +73,10 @@ struct WidgetTab: View {
             }
         }
         tidePicker(note: "Or right-click the widget")
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle("Show the week", isOn: $settings.showWeekBand)
+            Caption("Or right-click the widget")
+        }
         textSizePicker
         // Fitting and measuring only apply to the horizontal widget.
         if !model.vertical {

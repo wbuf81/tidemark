@@ -240,22 +240,32 @@ struct GlanceDivider: View {
     }
 }
 
-/// The context menu of the widget and the notch.
+/// The context menu of the widget and the notch. It observes the settings and the model it shows, so every
+/// check mark and conditional item is drawn from what they hold when the menu opens.
 struct WidgetMenu: View {
-    let model: AppModel
+    @ObservedObject var model: AppModel
+    @ObservedObject var settings: Settings
     let actions: AppActions
+    /// False where there is no week band to show or hide (the notch).
+    let weekBand: Bool
+
+    init(model: AppModel, actions: AppActions, weekBand: Bool = true) {
+        self.model = model
+        settings = model.settings
+        self.actions = actions
+        self.weekBand = weekBand
+    }
 
     var body: some View {
-        let items = Self.items(signedIn: model.signedIn, calendar: model.week != nil, tide: model.settings.tideStyle,
-                               setTide: { model.settings.tideStyle = $0 }, actions: actions)
-        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-            if let title = item.title {
-                if item.children.isEmpty {
-                    Button(title, action: item.action)
+        let entries = Self.entries(signedIn: model.signedIn, calendar: model.week != nil, settings: settings, weekBand: weekBand)
+        ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
+            if let title = entry.title {
+                if entry.children.isEmpty {
+                    Button(title) { run(entry) }
                 } else {
                     Menu(title) {
-                        ForEach(Array(item.children.enumerated()), id: \.offset) { _, child in
-                            Toggle(child.title ?? "", isOn: Binding(get: { child.checked }, set: { _ in child.action() }))
+                        ForEach(Array(entry.children.enumerated()), id: \.offset) { _, child in
+                            Toggle(child.title ?? "", isOn: Binding(get: { child.checked }, set: { _ in run(child) }))
                         }
                     }
                 }
@@ -263,31 +273,23 @@ struct WidgetMenu: View {
         }
     }
 
-    /// One entry: a button, a divider when `title` is nil, or a submenu when it has `children` (each
-    /// with a check mark when `checked`).
-    struct Item {
-        var title: String?
-        var action: () -> Void = {}
-        var checked = false
-        var children: [Item] = []
-
-        static let divider = Item(title: nil)
+    /// The entries for these settings and this state; `--render` lists them in menus.md.
+    static func entries(signedIn: Bool, calendar: Bool, settings: Settings, weekBand: Bool = true) -> [WidgetMenuModel.Entry] {
+        WidgetMenuModel.entries(signedIn: signedIn, calendar: calendar, tide: settings.tideStyle,
+                                showWeek: settings.showWeekBand, weekBand: weekBand)
     }
 
-    /// The entries in order. Open week calendar shows once there is a week to open, Sign in… only while signed out,
-    /// Tide when `tide` (the current style) is given. `--render` lists them in menus.md.
-    static func items(signedIn: Bool, calendar: Bool, tide: TideStyle? = nil, setTide: @escaping (TideStyle) -> Void = { _ in },
-                      actions: AppActions) -> [Item] {
-        var items = [Item(title: "Refresh now", action: actions.refresh), Item(title: "Hide for 1 hour", action: actions.hideForAnHour)]
-        if calendar { items.append(Item(title: "Open week calendar", action: { actions.openWindow(.week, nil) })) }
-        if let tide {
-            items.append(Item(title: "Tide", children: TideStyle.allCases.map { style in
-                Item(title: style.label, action: { setTide(style) }, checked: style == tide)
-            }))
+    private func run(_ entry: WidgetMenuModel.Entry) {
+        switch entry.command {
+        case .refresh: actions.refresh()
+        case .hideForAnHour: actions.hideForAnHour()
+        case .openWeekCalendar: actions.openWindow(.week, nil)
+        case .openSettings: actions.openSettings(.general)
+        case .signIn: actions.signIn()
+        case .quit: actions.quit()
+        case .setTide(let style): settings.tideStyle = style
+        case .setShowWeek(let shown): settings.showWeekBand = shown
+        case nil: break
         }
-        items += [.divider, Item(title: "Settings…", action: { actions.openSettings(.general) })]
-        if !signedIn { items.append(Item(title: "Sign in…", action: actions.signIn)) }
-        items += [.divider, Item(title: "Quit Tidemark", action: actions.quit)]
-        return items
     }
 }

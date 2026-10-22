@@ -249,7 +249,7 @@ struct NotchView: View {
         .simultaneousGesture(MagnificationGesture()
             .onChanged { actions.pinch($0, false) }
             .onEnded { actions.pinch($0, true) })
-        .contextMenu { WidgetMenu(model: model, actions: actions) }
+        .contextMenu { WidgetMenu(model: model, actions: actions, weekBand: false) }
     }
 
     /// The look's shape over the glass.

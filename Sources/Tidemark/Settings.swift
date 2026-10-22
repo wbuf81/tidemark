@@ -56,6 +56,8 @@ final class Settings: ObservableObject {
     /// How an org that's in use shows it, and how many particles.
     /// How each plan's tide is drawn in the widget: the water level, or the week as it filled.
     @Published var tideStyle: TideStyle { didSet { defaults.set(tideStyle.rawValue, forKey: "tideStyle") } }
+    /// The week band at the end of the widget; off leaves it out.
+    @Published var showWeekBand: Bool { didSet { defaults.set(showWeekBand, forKey: "showWeekBand") } }
     @Published var effectStyle: EffectStyle { didSet { defaults.set(effectStyle.rawValue, forKey: "effectStyle") } }
     @Published var effectAmount: EffectAmount { didSet { defaults.set(effectAmount.rawValue, forKey: "effectAmount") } }
     @Published var themeChoice: ThemeChoice { didSet { defaults.set(themeChoice.rawValue, forKey: "themeChoice") } }
@@ -115,6 +117,7 @@ final class Settings: ObservableObject {
         notchRim = defaults.object(forKey: "notchRim") as? Bool ?? false
         notchWidth = defaults.object(forKey: "notchWidth") as? Double ?? 214
         tideStyle = TideStyle(rawValue: defaults.string(forKey: "tideStyle") ?? "") ?? .level
+        showWeekBand = defaults.object(forKey: "showWeekBand") as? Bool ?? true
         effectStyle = EffectStyle(rawValue: defaults.string(forKey: "effectStyle") ?? "") ?? .flow
         effectAmount = EffectAmount(rawValue: defaults.string(forKey: "effectAmount") ?? "") ?? .normal
         themeChoice = ThemeChoice(rawValue: defaults.string(forKey: "themeChoice") ?? "") ?? .followMac
@@ -155,7 +158,7 @@ final class Settings: ObservableObject {
         widgetWidth = fresh.widgetWidth; stripWidth = fresh.stripWidth; fitBesideDock = fresh.fitBesideDock
         measureDock = fresh.measureDock; displayMode = fresh.displayMode; notchLook = fresh.notchLook
         notchPlace = fresh.notchPlace; notchOpensTo = fresh.notchOpensTo; notchRim = fresh.notchRim
-        notchWidth = fresh.notchWidth; tideStyle = fresh.tideStyle; effectStyle = fresh.effectStyle; effectAmount = fresh.effectAmount
+        notchWidth = fresh.notchWidth; tideStyle = fresh.tideStyle; showWeekBand = fresh.showWeekBand; effectStyle = fresh.effectStyle; effectAmount = fresh.effectAmount
         themeChoice = fresh.themeChoice; showModelRows = fresh.showModelRows; showSessionRows = fresh.showSessionRows
         wallpaperDay = fresh.wallpaperDay; wallpaperNight = fresh.wallpaperNight
         weekStart = fresh.weekStart; reportMode = fresh.reportMode

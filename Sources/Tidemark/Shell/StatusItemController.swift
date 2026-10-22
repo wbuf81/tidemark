@@ -31,6 +31,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     /// The plan whose details card is open: its battery draws highlighted.
     private var highlighted: String?
     private var sinks: [AnyCancellable] = []
+    /// Bubbles and the needs-you dot on the batteries.
+    private let effects = BatteryEffects()
     private lazy var builder = MainMenu(run: { [weak self] id in self?.run(id) })
 
     init(model: AppModel, widgetHidden: @escaping () -> Bool, callbacks: Callbacks) {
@@ -62,7 +64,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         guard model.settings.menuBarMode == .batteries else { return [] }
         let plans = model.orgs.map { org in
             MenuBarBatteries.Plan(id: org.id, name: org.name, weekUsed: model.glance(for: org)?.week.used,
-                                  state: model.weekState(for: org), isOld: model.isOld(org))
+                                  state: model.weekState(for: org), isOld: model.isOld(org), codeMood: model.codeMood(for: org))
         }
         return MenuBarBatteries.make(plans, limitsOn: !model.limitsOff, names: model.settings.planNameStyle)
     }
@@ -98,6 +100,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         if items == shownItems, batteries.map(\.id) == items.map(\.id) { return }
         shownItems = items
         if batteries.map(\.id) != items.map(\.id) {
+            effects.removeAll()
             for old in batteries { NSStatusBar.system.removeStatusItem(old.item) }
             // A new item lands left of the others, so the last plan goes in first.
             batteries = items.reversed().map { entry in
@@ -112,6 +115,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         for (entry, slot) in zip(items, batteries.map(\.item)) {
             slot.button?.attributedTitle = MenuBarIcon.batteryTitle(entry)
             slot.button?.setAccessibilityLabel(entry.accessibility)
+            if let button = slot.button { effects.update(id: entry.id, button: button, item: entry) }
         }
         highlight(plan: highlighted)
     }

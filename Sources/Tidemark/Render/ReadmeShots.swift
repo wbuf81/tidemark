@@ -26,12 +26,11 @@ enum ReadmeShots: ShotProvider {
             return Renderer.picture(ReadmeFirstRun(window: image), dark: dark)
         }
         var shots: [Shot] = [
-            shot("hero", "The README's hero: Tidemark's window on Week, and the widget beside a Dock, on a soft desktop gradient (880 points wide)") { dark in
-                let window = MainWindowController.frame(model: stage.demo(stage.scenarios[0]), actions: .none, section: .week,
-                                                        calendar: DemoCalendar.store(), now: { stage.now })
+            shot("hero", "The README's hero: a desktop on the sky with the menu bar's batteries, the main window on Usage and the widget beside a Dock (980 points wide)") { dark in
+                let model = readmePlans(stage, mood: .thinking)
+                let window = MainWindowController.frame(model: model, actions: .none, section: .usage)
                 guard let image = Offscreen.image(of: window, dark: dark) else { return nil }
-                let widget = stage.mock([.personal], mood: .thinking, week: stage.mockWeek())
-                return Renderer.picture(ReadmeHero(window: image, model: widget), dark: dark)
+                return Renderer.picture(ReadmeHero(window: image, model: readmePlans(stage, mood: .thinking), items: readmeBatteries(), dark: dark), dark: dark)
             },
             shot("step-reads", "First run, step 2 of 4: What Tidemark reads") { firstRun(2, $0) },
             shot("step-plan-limits", "First run, step 3 of 4: Show your plan's limits? with Anthropic's warning") { firstRun(3, $0) },
@@ -49,12 +48,87 @@ enum ReadmeShots: ShotProvider {
             },
         ]
         for (i, mood) in gifMoods.enumerated() {
-            shots.append(shot("gif-\(i)", "Status GIF frame \(i + 1) of \(gifMoods.count): Claude Code \(mood.word), plan cards unchanged") { dark in
+            shots.append(shot("gif-\(i)", "Status GIF frame \(i + 1) of \(gifMoods.count): Claude Code \(mood.word) on the plan's chip, plan cards unchanged") { dark in
                 let model = stage.mock([.personal, .harbor], mood: mood, week: stage.mockWeek())
                 model.hooksConnected = true
                 return Renderer.picture(RenderWidgetScene(model: model, width: 560), dark: dark)
             })
         }
+        // Click a plan: the widget alone, then its details card open above Harbor Labs.
+        for open in [false, true] {
+            shots.append(shot("click-\(open ? 1 : 0)", open ? "Click-a-plan GIF frame 2: Harbor Labs's details card open above its slot" : "Click-a-plan GIF frame 1: the widget alone") { dark in
+                Renderer.picture(ReadmeClickScene(model: readmePlans(stage, mood: .thinking), open: open), dark: dark)
+            })
+        }
+        // Feature tiles: one size, the subject centred and scaled to fit on the sky.
+        func feature(_ name: String, _ about: String, maxScale: CGFloat = 1.6, _ subject: @escaping @MainActor (Bool) -> AnyView) -> Shot {
+            shot("feature-\(name)", "Feature tile (880 \u{00D7} 560 points): \(about)") { dark in
+                ReadmeTile.draw(subject(dark), dark: dark, maxScale: maxScale)
+            }
+        }
+        func lift<V: View>(_ v: V) -> AnyView { AnyView(v.shadow(color: .black.opacity(0.22), radius: 14, y: 7).padding(24)) }
+        shots += [
+            feature("tide", "the widget with two plans, tides and the week") { _ in
+                lift(WidgetView(model: stage.mock([.personal, .harbor], mood: nil, week: stage.mockWeek()), actions: .none, width: 560).fixedSize())
+            },
+            feature("status", "Needs you on Personal's chip, Harbor Labs out") { _ in
+                let model = stage.mock([.personal, .harborOut], mood: .permission, week: stage.mockWeek())
+                model.hooksConnected = true
+                return lift(WidgetView(model: model, actions: .none, width: 560).fixedSize())
+            },
+            feature("battery", "the menu bar's batteries", maxScale: 2.0) { dark in AnyView(ReadmeMenuBar(items: readmeBatteries(), dark: dark).shadow(color: .black.opacity(0.2), radius: 10, y: 5).padding(24)) },
+            feature("details", "Harbor Labs's details card") { _ in
+                lift(ReadmeDetailsCard(model: readmePlans(stage, mood: .thinking), orgID: DemoData.harbor.id))
+            },
+            feature("usage", "the Usage page, top of the page") { _ in
+                let model = stage.mock([MockPlan.personal.withFable(31), MockPlan.harbor.withFable(6)], mood: nil, claudeCode: DemoData.harbor)
+                return lift(RenderUsageScene(model: model, width: 980, selection: nil)
+                    .frame(height: 740, alignment: .top).clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Palette.line, lineWidth: 0.5)))
+            },
+            feature("week", "the Week section") { dark in
+                let model = stage.mock([.personal, .harbor], mood: nil)
+                let window = MainWindowController.frame(model: model, actions: .none, section: .week, calendar: DemoCalendar.store(), now: { stage.now })
+                guard let image = Offscreen.image(of: window, dark: dark) else { return AnyView(EmptyView()) }
+                return AnyView(ReadmeWindowImage(image, width: image.size.width).padding(24))
+            },
+            feature("report", "the weekly report, written by Claude Code", maxScale: 1.4) { _ in
+                let demo = DemoCalendar.store()
+                let week = demo.week(containing: stage.now.addingTimeInterval(-7 * 86400), weekStart: .monday, now: stage.now)
+                let model = ReportModel(week: week, settings: stage.model().settings, store: demo, actions: .none, now: { stage.now }, tab: .claude, phase: .idle)
+                return lift(ReportCard(model: model).frame(width: 560)
+                    .background(Palette.tile)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous)))
+            },
+            feature("trends", "Trends, eight weeks by project") { dark in
+                let settings = stage.model().settings
+                settings.weekStart = .monday
+                let model = TrendsPaneModel(store: DemoCalendar.store(), settings: settings, now: { DemoCalendar.now })
+                guard let image = readmePane(TrendsPane(model: model, onOpenWeek: { _ in }), size: NSSize(width: 960, height: 300), dark: dark) else { return AnyView(EmptyView()) }
+                return AnyView(ReadmeWindowImage(image, width: image.size.width).padding(24))
+            },
+            feature("notch", "the open notch, cut to the screen's corner", maxScale: 1.8) { _ in
+                let model = stage.mock([.personal, .harbor], mood: .thinking)
+                model.settings.notchLook = .hardware
+                // The tile is 590 points wide with the open notch at its right end: keep only the part that hangs
+                // from the screen's top edge, not the black shoulder to its left.
+                return AnyView(NotchTile(model: model, open: true)
+                    .offset(x: -170)
+                    .frame(width: 420, height: 116, alignment: .topLeading)
+                    .background(ReadmeSky())
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Palette.line, lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.2), radius: 12, y: 6).padding(24))
+            },
+            feature("private", "first run's What Tidemark reads", maxScale: 1.3) { dark in
+                let state = FirstRunState()
+                state.step = 2
+                let window = FirstRunController.frame(model: stage.demo(stage.scenarios[0], week: stage.week()), state: state, actions: FirstRunActions())
+                guard let image = Offscreen.image(of: window, dark: dark) else { return AnyView(EmptyView()) }
+                return AnyView(ReadmeWindowImage(image, width: image.size.width).padding(24))
+            },
+        ]
         return shots
     }
 }
@@ -69,6 +143,111 @@ struct ReadmeDesktop: View {
                        ? [Color(red: 0.07, green: 0.10, blue: 0.15), Color(red: 0.09, green: 0.19, blue: 0.23), Color(red: 0.15, green: 0.13, blue: 0.20)]
                        : [Color(red: 0.90, green: 0.93, blue: 0.97), Color(red: 0.84, green: 0.90, blue: 0.95), Color(red: 0.96, green: 0.92, blue: 0.91)],
                        startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
+/// The README's sample plans (Personal 58%, Harbor Labs 81%) and week, as every widget picture draws them.
+@MainActor func readmePlans(_ stage: RenderStage, mood: CodeMood?) -> AppModel {
+    stage.mock([.personal, .harbor], mood: mood, week: stage.mockWeek())
+}
+
+/// The menu bar's batteries for the same plans: Personal 42% left, Harbor Labs 19% left and running out early.
+func readmeBatteries() -> [MenuBarBatteries.Item] {
+    MenuBarBatteries.make([MenuBarBatteries.Plan(id: "personal", name: "Personal", weekUsed: 58, state: .fine, isOld: false),
+                           MenuBarBatteries.Plan(id: "harbor", name: "Harbor Labs", weekUsed: 81, state: .runsOutEarly, isOld: false)],
+                          limitsOn: true, names: .names)
+}
+
+/// A pane built for real in an offscreen borderless window, so its controls draw.
+@MainActor func readmePane<V: View>(_ view: V, size: NSSize, dark: Bool) -> NSBitmapImageRep? {
+    let host = NSHostingController(rootView: view.frame(width: size.width, height: size.height).background(Palette.tile))
+    host.sizingOptions = []
+    let window = NSWindow(contentViewController: host)
+    window.styleMask = [.borderless]
+    window.setContentSize(size)
+    return Offscreen.image(of: window, dark: dark, chrome: false)
+}
+
+/// The sky behind the feature tiles and the hero: the widget's dawn or dusk gradient.
+struct ReadmeSky: View {
+    @Environment(\.colorScheme) private var scheme
+    var body: some View {
+        let p = TidePalette.for(scheme)
+        LinearGradient(stops: [.init(color: p.sky1, location: 0), .init(color: p.sky2, location: 0.55), .init(color: p.sky3, location: 1)],
+                       startPoint: .top, endPoint: .bottom)
+    }
+}
+
+/// Every feature tile is 880 \u{00D7} 560 points: the subject is measured, then scaled to fit with room round it, never past `maxScale`.
+enum ReadmeTile {
+    static let size = CGSize(width: 880, height: 560)
+
+    @MainActor static func draw(_ subject: AnyView, dark: Bool, maxScale: CGFloat) -> NSBitmapImageRep? {
+        guard let probe = Renderer.picture(subject.fixedSize(), dark: dark), probe.pixelsWide > 0 else { return nil }
+        let w = CGFloat(probe.pixelsWide) / 2, h = CGFloat(probe.pixelsHigh) / 2
+        let scale = min((size.width - 56) / w, (size.height - 56) / h, maxScale)
+        let tile = ZStack {
+            ReadmeSky()
+            subject.fixedSize().scaleEffect(scale)
+        }
+        .frame(width: size.width, height: size.height)
+        .clipped()
+        return Renderer.picture(tile, dark: dark)
+    }
+}
+
+/// The right end of a menu bar with the plans' batteries.
+struct ReadmeMenuBar: View {
+    var items: [MenuBarBatteries.Item]
+    var dark: Bool
+    var body: some View {
+        let ink = dark ? Color(red: 0.95, green: 0.95, blue: 0.97) : Color(red: 0.07, green: 0.07, blue: 0.07)
+        HStack(spacing: 15) {
+            ForEach(items, id: \.id) { item in
+                Image(nsImage: MenuBarIcon.batteryTitleImage(item, dark: dark)).accessibilityLabel(item.accessibility)
+            }
+            Image(systemName: "wifi").font(.system(size: 13, weight: .semibold))
+            Text("11:32").font(.system(size: 13))
+        }
+        .foregroundStyle(ink)
+        .padding(.horizontal, 14).frame(height: 28)
+        .background(dark ? Color(red: 0.04, green: 0.05, blue: 0.12).opacity(0.6) : Color.white.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+}
+
+/// A plan's details card from the model, as the panel draws it.
+struct ReadmeDetailsCard: View {
+    @ObservedObject var model: AppModel
+    let orgID: String
+    var body: some View {
+        if let org = model.orgs.first(where: { $0.id == orgID }), let reading = model.latest[orgID] {
+            PlanDetailsView(name: org.name,
+                            details: PlanDetails.make(reading: reading.adjusted(to: model.now), history: model.history, now: model.now,
+                                                      formatting: model.formatting, thresholds: model.settings.thresholds, isOld: model.isOld(org)),
+                            formatting: model.formatting, isOld: model.isOld(org))
+        }
+    }
+}
+
+/// The click-a-plan frames: the widget at the bottom, Harbor Labs's card above its slot when `open`; both the same size.
+struct ReadmeClickScene: View {
+    @ObservedObject var model: AppModel
+    var open: Bool
+    var body: some View {
+        VStack(spacing: 10) {
+            ZStack(alignment: .bottomLeading) {
+                Color.clear.frame(width: 560, height: 600)
+                if open {
+                    ReadmeDetailsCard(model: model, orgID: DemoData.harbor.id)
+                        .shadow(color: .black.opacity(0.25), radius: 14, y: 6)
+                        .padding(.leading, 232 + 116 - 150)
+                }
+            }
+            WidgetView(model: model, actions: .none, width: 560).fixedSize()
+        }
+        .padding(24)
+        .background(ShowcaseWallpaper())
     }
 }
 
@@ -145,14 +324,16 @@ private struct IconInner: View {
 /// A Dock: a rounded bar of plain app tiles and Tidemark's icon, drawn for the picture.
 struct ReadmeDock: View {
     @Environment(\.colorScheme) private var scheme
+    var count = 5
     var body: some View {
-        let tiles: [[Color]] = [
+        let all: [[Color]] = [
             [Color(red: 0.36, green: 0.62, blue: 0.95), Color(red: 0.20, green: 0.40, blue: 0.85)],
             [Color(red: 0.95, green: 0.70, blue: 0.35), Color(red: 0.90, green: 0.45, blue: 0.25)],
             [Color(red: 0.45, green: 0.80, blue: 0.55), Color(red: 0.20, green: 0.60, blue: 0.40)],
             [Color(red: 0.70, green: 0.55, blue: 0.90), Color(red: 0.45, green: 0.35, blue: 0.80)],
             [Color(red: 0.62, green: 0.66, blue: 0.72), Color(red: 0.40, green: 0.44, blue: 0.50)],
         ]
+        let tiles = Array(all.prefix(count))
         HStack(spacing: 9) {
             ForEach(Array(tiles.enumerated()), id: \.offset) { _, c in
                 RoundedRectangle(cornerRadius: 11, style: .continuous)
@@ -175,9 +356,10 @@ struct ReadmeDock: View {
 struct ReadmeDockRow: View {
     @ObservedObject var model: AppModel
     var widgetWidth: CGFloat = 330
+    var dockTiles = 5
     var body: some View {
         HStack(spacing: 14) {
-            ReadmeDock()
+            ReadmeDock(count: dockTiles)
             WidgetView(model: model, actions: .none, width: widgetWidth).fixedSize()
         }
     }
@@ -195,14 +377,29 @@ struct ReadmeDockScene: View {
 struct ReadmeHero: View {
     let window: NSBitmapImageRep
     @ObservedObject var model: AppModel
+    var items: [MenuBarBatteries.Item]
+    var dark: Bool
     var body: some View {
-        VStack(spacing: 26) {
-            ReadmeWindowImage(window, width: 690)
-            ReadmeDockRow(model: model)
+        let ink = dark ? Color(red: 0.95, green: 0.95, blue: 0.97) : Color(red: 0.07, green: 0.07, blue: 0.07)
+        VStack(spacing: 0) {
+            HStack(spacing: 15) {
+                Text("Finder").font(.system(size: 13, weight: .bold))
+                ForEach(["File", "Edit", "View"], id: \.self) { Text($0).font(.system(size: 13)) }
+                Spacer(minLength: 20)
+                ForEach(items, id: \.id) { Image(nsImage: MenuBarIcon.batteryTitleImage($0, dark: dark)) }
+                Text("Wed 21 Oct  11:32").font(.system(size: 13))
+            }
+            .foregroundStyle(ink)
+            .padding(.horizontal, 14).frame(height: 28)
+            .background(dark ? Color(red: 0.04, green: 0.05, blue: 0.12).opacity(0.55) : Color.white.opacity(0.55))
+            Spacer().frame(height: 30)
+            ReadmeWindowImage(window, width: 800)
+            Spacer().frame(height: 30)
+            ReadmeDockRow(model: model, widgetWidth: 560, dockTiles: 3)
+            Spacer().frame(height: 24)
         }
-        .frame(width: 880)
-        .padding(.top, 34).padding(.bottom, 26)
-        .background(ReadmeDesktop())
+        .frame(width: 980)
+        .background(ReadmeSky())
     }
 }
 

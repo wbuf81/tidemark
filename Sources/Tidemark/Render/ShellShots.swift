@@ -185,13 +185,19 @@ enum ShellShots: ShotProvider {
                         names: .names, [("personal", "Personal", 58, .fine, false), ("harbor", "Harbor Labs", 100, .out, false)]),
             batteryShot("batteries-old", "Old readings: the batteries dim to half",
                         names: .names, [("personal", "Personal", 58, .fine, true), ("harbor", "Harbor Labs", 81, .runsOutEarly, true)]),
+            batteryShot("batteries-working", "Claude Code is working on Harbor Labs: bubbles rise inside its battery (a still of one moment; the real ones move, about 10 frames a second)",
+                        names: .names, [("personal", "Personal", 58, .fine, false), ("harbor", "Harbor Labs", 81, .runsOutEarly, false)], moods: ["harbor": .tool]),
+            batteryShot("batteries-working-ink", "Claude Code is working on Personal (plain ink fill): the bubbles show in the bar's colour",
+                        names: .names, [("personal", "Personal", 58, .fine, false), ("harbor", "Harbor Labs", 81, .runsOutEarly, false)], moods: ["personal": .thinking]),
+            batteryShot("batteries-needs-you", "Claude Code needs you on Harbor Labs: a blue dot at its battery's top-right corner (pulses gently in the real bar; still with Reduce Motion)",
+                        names: .names, [("personal", "Personal", 58, .fine, false), ("harbor", "Harbor Labs", 81, .runsOutEarly, false)], moods: ["harbor": .permission]),
         ]
     }
 
     private typealias BatteryPlan = (id: String, name: String, used: Double, state: PlanState, old: Bool)
 
-    private static func batteryShot(_ state: String, _ about: String, names: PlanNameStyle, _ plans: [BatteryPlan]) -> Shot {
-        let items = MenuBarBatteries.make(plans.map { MenuBarBatteries.Plan(id: $0.id, name: $0.name, weekUsed: $0.used, state: $0.state, isOld: $0.old) },
+    private static func batteryShot(_ state: String, _ about: String, names: PlanNameStyle, _ plans: [BatteryPlan], moods: [String: CodeMood] = [:]) -> Shot {
+        let items = MenuBarBatteries.make(plans.map { MenuBarBatteries.Plan(id: $0.id, name: $0.name, weekUsed: $0.used, state: $0.state, isOld: $0.old, codeMood: moods[$0.id]) },
                                           limitsOn: true, names: names)
         return Shot(screen: "menubar", state: state, about: about) { dark in
             Renderer.picture(BatteryBar(items: items, dark: dark), dark: dark)
@@ -289,6 +295,16 @@ private struct BatteryBar: View {
     var items: [MenuBarBatteries.Item]
     var dark: Bool
 
+    /// What a picture can show of the real battery's motion: one moment of it, as the real bar would draw it awake.
+    static func still(_ item: MenuBarBatteries.Item) -> MenuBarBatteries.Effect? {
+        guard item.activity != .none else { return nil }
+        var gate = WaveGate()
+        gate.windowVisible = true
+        var effect = MenuBarBatteries.effect(item.activity, gate: gate)
+        effect.pulse = false
+        return effect
+    }
+
     var body: some View {
         let ink = dark ? Color(red: 0.95, green: 0.95, blue: 0.97) : Color(red: 0.07, green: 0.07, blue: 0.07)
         VStack(spacing: 0) {
@@ -297,7 +313,7 @@ private struct BatteryBar: View {
                 ForEach(["File", "Edit", "View"], id: \.self) { Text($0).font(.system(size: 13)) }
                 Spacer(minLength: 20)
                 ForEach(items, id: \.id) { item in
-                    Image(nsImage: MenuBarIcon.batteryTitleImage(item, dark: dark))
+                    Image(nsImage: MenuBarIcon.batteryTitleImage(item, dark: dark, effect: Self.still(item)))
                         .accessibilityLabel(item.accessibility)
                 }
                 Text("Wed 21 Oct  11:32").font(.system(size: 13))

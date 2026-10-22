@@ -78,6 +78,9 @@ enum SettingsShots: ShotProvider {
             shot(.widget, "widget", "Show as Widget: position, layout, width (no tick marks), text size, Dock fitting, in-use effect") {
                 hub($0, model: on())
             },
+            shot(.widget, "week-off", "Show the week switched off: the widget leaves out the week band") {
+                hub($0, model: on { $0.settings.showWeekBand = false })
+            },
             shot(.widget, "notch", "Show as Notch: Shape, Place, Width, Opens to Medium or Large, Status rim; no in-use effect") {
                 hub($0, model: on { $0.settings.displayMode = .notch })
             },

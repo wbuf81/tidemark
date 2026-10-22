@@ -10,6 +10,7 @@ docs/images/*-light.png
 docs/images/*-dark.png
 docs/images/README-pictures.txt
 docs/images/widget-status.gif
+docs/images/click-a-plan.gif
 .github/**
 .githooks/**
 Package.swift

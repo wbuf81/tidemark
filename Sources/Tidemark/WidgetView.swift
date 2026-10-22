@@ -33,14 +33,15 @@ struct WidgetView: View {
             limitsOffBar
         } else {
             let layout = WidgetSizing.layout(width: Double(layoutWidth), orgs: model.orgs.count, advice: model.advice != nil,
-                                             week: model.week != nil && !model.orgs.isEmpty && model.widgetMessage == nil,
+                                             week: model.week != nil && model.settings.showWeekBand && !model.orgs.isEmpty && model.widgetMessage == nil,
                                              status: model.leftStatusMood)
             // A message (or no plans yet) needs room for its words beside the status slot.
             let wide = model.orgs.isEmpty || model.widgetMessage != nil
             let drawn = wide ? max(layout.width, layout.statusWidth + layout.bandWidth + 230) : layout.width
             GlanceRow(model: model, actions: actions, layout: layout, k: k)
                 .frame(width: CGFloat(drawn) * k, height: model.widgetHeight)
-                .widgetSky(moon: drawn >= 400)
+                // The corner moon sits over the week band; without the band it would cover the last plan.
+                .widgetSky(moon: drawn >= 400 && layout.weekWidth > 0)
         }
     }
 
@@ -50,7 +51,7 @@ struct WidgetView: View {
         let status = WidgetSizing.statusWidth(for: .l, mood: mood)
         return HStack(spacing: 0) {
             StatusSlot(mood: mood, width: CGFloat(status) * k, k: k)
-            if let week = model.week {
+            if let week = model.week, model.settings.showWeekBand {
                 WeekBandView(week: week, now: model.now, k: k, showsTopHours: true, open: { actions.openWindow(.week, nil) })
                     .frame(width: CGFloat(WidgetSizing.weekBand + 28) * k)
                     .overlay(alignment: .leading) { GlanceDivider(vertical: false, k: k) }
@@ -77,7 +78,7 @@ struct WidgetView: View {
                 GlanceDivider(vertical: true, k: k)
             }
             if model.limitsOff {
-                if let week = model.week {
+                if let week = model.week, model.settings.showWeekBand {
                     WeekBandView(week: week, now: model.now, k: k, showsTopHours: true, open: { actions.openWindow(.week, nil) })
                         .padding(.vertical, 10 * k)
                 }
