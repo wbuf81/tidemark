@@ -9,7 +9,11 @@ has() { if grep -qF -- "$2" <<<"$1"; then echo "ok   $3"; else echo "FAIL $3: mi
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 
 # VERSION file
-check "$(tr -d '[:space:]' < VERSION 2>/dev/null)" "1.0.0" "VERSION is 1.0.0"
+version="$(tr -d '[:space:]' < VERSION 2>/dev/null)"
+case "$version" in
+  [0-9]*.[0-9]*.[0-9]*) check "ok" "ok" "VERSION is a plain x.y.z" ;;
+  *) check "$version" "x.y.z" "VERSION is a plain x.y.z" ;;
+esac
 
 # Info.plist stamping
 scripts/write-info-plist.sh "$tmp/Info.plist" 9.8.7 >/dev/null 2>&1
@@ -47,8 +51,8 @@ before="$(snap)"
 dryout="$tmp/dry-out"
 out="$(TIDEMARK_OUT="$dryout" scripts/../release.sh --dry-run 2>&1)"; rc=$?
 check "$rc" "0" "dry run exits 0"
-has "$out" "Tidemark-1.0.0.zip" "plan names the zip"
-has "$out" "Tidemark-1.0.0.zip.sha256" "plan names the checksum"
+has "$out" "Tidemark-$version.zip" "plan names the zip"
+has "$out" "Tidemark-$version.zip.sha256" "plan names the checksum"
 has "$out" "arm64" "plan builds arm64"
 has "$out" "x86_64" "plan builds x86_64"
 has "$out" "lipo -create" "plan joins with lipo"

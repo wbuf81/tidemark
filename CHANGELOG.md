@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- The programs Tidemark runs (git for your commits, Claude Code for the weekly report) no longer stall
+  when several run at once on a Mac with few cores.
+- Builds with Xcode 16's Swift again.
+
 ## 1.0.0
 
 First public release.
