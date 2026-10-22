@@ -38,7 +38,7 @@ import Testing
                            session("sess-c", light, [block(local(2026, 10, 5, 14), 60)])])
         let w = week(s)
         #expect(w.projects.map(\.name) == ["tide-tables", "lighthouse-api"])
-        #expect(w.projects.map(\.seconds) == [3 * 3600, 3600])
+        #expect(w.projects.map(\.seconds) == [3 * 3600, 3600] as [TimeInterval])
         #expect(w.projects[0].sessions == 2)
         #expect(w.total == 4 * 3600)
         #expect(w.sessions == 3)

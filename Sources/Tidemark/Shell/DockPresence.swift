@@ -13,8 +13,9 @@ final class DockPresence {
     private let apply: @MainActor (NSApplication.ActivationPolicy) -> Void
     static let delay: TimeInterval = 0.5
 
-    init(apply: @escaping @MainActor (NSApplication.ActivationPolicy) -> Void = DockPresence.applyToApp) {
-        self.apply = apply
+    /// nil applies it to the app. (Not a default of `applyToApp`: Swift 6.0 reads default arguments off the main actor.)
+    init(apply: (@MainActor (NSApplication.ActivationPolicy) -> Void)? = nil) {
+        self.apply = apply ?? { DockPresence.applyToApp($0) }
     }
 
     private static func applyToApp(_ policy: NSApplication.ActivationPolicy) {
