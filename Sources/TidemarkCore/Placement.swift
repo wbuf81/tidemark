@@ -146,12 +146,14 @@ public enum WidgetPlacement {
     /// visible frame, so menu bar and side Docks are never covered.
     public static func origin(size: CGSize, screen: CGRect, visible: CGRect, spot: WidgetSpot?,
                               dockWidth: Double? = nil) -> CGPoint {
-        func bottom(atX x: Double) -> Double {
+        // All CGFloat: Swift 6.0 (Xcode 16) can't pick an operator when Double and CGFloat mix in one sum.
+        func bottom(atX x: CGFloat) -> CGFloat {
             guard visible.minY > screen.minY + 1 else { return visible.minY + 12 }
             guard let dockWidth else { return screen.minY + 6 }
+            let halfDock = CGFloat(dockWidth) / 2
             // Half a point of slack, so a width fitted to the gap isn't pushed above the Dock by rounding.
-            let besideDock = x >= screen.midX + dockWidth / 2 + 8 - 0.5
-                || x + size.width <= screen.midX - dockWidth / 2 - 8 + 0.5
+            let besideDock = x >= screen.midX + halfDock + 8 - 0.5
+                || x + size.width <= screen.midX - halfDock - 8 + 0.5
             return besideDock ? screen.minY + 6 : visible.minY + 12
         }
         let point: CGPoint
