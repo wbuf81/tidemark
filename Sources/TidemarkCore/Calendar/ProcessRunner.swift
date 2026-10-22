@@ -45,13 +45,16 @@ public struct SystemProcessRunner: ProcessRunning {
         _ = fcntl(inPipe.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
         do { try process.run() } catch { return nil }
 
+        // The reads and the write block until the child is done with its pipes, so each gets a thread of its own.
+        // On GCD's shared queues, several runs at once on a Mac with few cores can fill them with blocked readers,
+        // and then the process's own exit notice (also on GCD) never runs: every run times out.
         let out = Buffer(), err = Buffer()
         let readers = DispatchGroup()
         readers.enter()
-        DispatchQueue.global().async { out.set(outPipe.fileHandleForReading.readDataToEndOfFile()); readers.leave() }
+        Thread.detachNewThread { out.set(outPipe.fileHandleForReading.readDataToEndOfFile()); readers.leave() }
         readers.enter()
-        DispatchQueue.global().async { err.set(errPipe.fileHandleForReading.readDataToEndOfFile()); readers.leave() }
-        DispatchQueue.global().async {
+        Thread.detachNewThread { err.set(errPipe.fileHandleForReading.readDataToEndOfFile()); readers.leave() }
+        Thread.detachNewThread {
             if let stdin { try? inPipe.fileHandleForWriting.write(contentsOf: stdin) }
             try? inPipe.fileHandleForWriting.close()
         }
